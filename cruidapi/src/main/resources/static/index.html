@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý sinh viên</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #d4fc79, #96e6a1, #fbc2eb);
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2f855a;
+            margin-top: 20px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #2f855a;
+        }
+
+        input {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #38a169;
+            box-shadow: 0 0 5px #68d391;
+        }
+
+        .full {
+            grid-column: 1 / span 2;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-save {
+            background-color: #38a169;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #2f855a;
+        }
+
+        .btn-edit {
+            background-color: #f687b3;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #ed64a6;
+        }
+
+        .btn-delete {
+            background-color: #e53e3e;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #c53030;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background-color: #38a169;
+            color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f0fff4;
+        }
+
+        tbody tr:hover {
+            background-color: #fed7e2;
+        }
+    </style>
+</head>
+<body>
+
+<h2>🌸 QUẢN LÝ SINH VIÊN 🌿</h2>
+
+<div class="container">
+
+    <form id="studentForm" accept-charset="UTF-8">
+        <input type="hidden" id="id">
+
+        <div>
+            <label>Tên sinh viên</label>
+            <input type="text" id="name" required>
+        </div>
+
+        <div>
+            <label>Email</label>
+            <input type="email" id="email" required>
+        </div>
+
+        <div>
+            <label>Số điện thoại</label>
+            <input type="text" id="phone" required>
+        </div>
+
+        <div>
+            <label>Lớp</label>
+            <input type="text" id="className" required>
+        </div>
+
+        <div class="full">
+            <button class="btn-save" type="submit">💾 Lưu sinh viên</button>
+        </div>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Email</th>
+                <th>SĐT</th>
+                <th>Lớp</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+    </table>
+
+</div>
+
+<script>
+const api = "http://localhost:8080/api/students";
+
+function loadStudents(){
+    fetch(api, {
+        headers: {
+            "Accept": "application/json; charset=UTF-8"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        let rows = "";
+        data.forEach(s => {
+            rows += `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${s.name}</td>
+                    <td>${s.email}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.className}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editStudent(${s.id})">Sửa</button>
+                        <button class="btn-delete" onclick="deleteStudent(${s.id})">Xóa</button>
+                    </td>
+                </tr>`;
+        });
+        document.getElementById("studentTable").innerHTML = rows;
+    });
+}
+
+document.getElementById("studentForm").onsubmit = function(e){
+    e.preventDefault();
+    let id = document.getElementById("id").value;
+
+    let student = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        className: document.getElementById("className").value
+    };
+
+    let method = id ? "PUT" : "POST";
+    let url = id ? api + "/" + id : api;
+
+    fetch(url, {
+        method: method,
+        headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Accept": "application/json; charset=UTF-8"
+        },
+        body: JSON.stringify(student)
+    }).then(() => {
+        loadStudents();
+        document.getElementById("studentForm").reset();
+        document.getElementById("id").value="";
+    });
+}
+
+function editStudent(id){
+    fetch(api + "/" + id, {
+        headers: {
+            "Accept": "application/json; charset=UTF-8"
+        }
+    })
+    .then(res => res.json())
+    .then(s => {
+        document.getElementById("id").value = s.id;
+        document.getElementById("name").value = s.name;
+        document.getElementById("email").value = s.email;
+        document.getElementById("phone").value = s.phone;
+        document.getElementById("className").value = s.className;
+    });
+}
+
+function deleteStudent(id){
+    if(confirm("Bạn có chắc muốn xóa sinh viên này?")){
+        fetch(api + "/" + id, {method: "DELETE"})
+        .then(() => loadStudents());
+    }
+}
+
+loadStudents();
+</script>
+
+</body>
+</html>
