@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cruidapi.entity.Student;
@@ -25,6 +26,12 @@ public class StudentController {
 
     public StudentController(StudentRepository repo) {
         this.repo = repo;
+    }
+
+    // SEARCH by name
+    @GetMapping("/search")
+    public List<Student> searchByName(@RequestParam String name) {
+        return repo.findByNameContainingIgnoreCase(name);
     }
 
     @GetMapping
